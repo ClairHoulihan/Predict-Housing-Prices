@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        {% if title %}
+            <title>Housing Project - {{ title }}</title>
+        {% else %}
+            <title>Housing Project</title>
+        {% endif %}
+        <link rel="stylesheet" type="text/css" href="{% static 'predictions/main.css' %}">
+    </head>
+    <body>
+        <header class="grid-head">
+            {% if title %}
+                <h1 class="headtitle grid-title">Housing Project - {{ title }}</h1>
+            {% else %}
+                <h1 class="headtitle grid-title">Housing Project</h1>
+            {% endif %}
+            <div class="navigation grid-navigation">
+                <a href="/">Home</a>
+                <a href="/predictions">Predictions</a>
+            </div>
+        </header>
+        {% block content %}{% endblock %}
+        <footer class="end">
+            <small>2021 Housing Project</small>
+        </footer>
+    </body>
+</html>

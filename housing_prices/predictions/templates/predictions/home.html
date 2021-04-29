@@ -1,0 +1,12 @@
+{% extends "predictions/base.html" %}
+{% block content %}
+{% load static %}
+<section class="grid-graphs">
+    <img class="grid-graph" src="{% static 'predictions/max_coefficients.png' %}" alt="Max Coefficients" width="500" height="400">
+    <img class="grid-graph" src="{% static 'predictions/min_coefficients.png' %}" alt="Min Coefficients" width="500" height="400">
+    <img class="grid-graph" src="{% static 'predictions/predicted_vs_actual_house_values_sorted.png' %}" alt="Sorted Predicted Vs Actual House Values" width="500" height="400">
+    <img class="grid-graph" src="{% static 'predictions/predicted_vs_actual_house_values.png' %}" alt="Predicted Vs Actual House Values" width="500" height="400">
+    <img class="grid-graph" src="{% static 'predictions/ridge_predicted_vs_actual_house_values_sorted.png' %}" alt="Sorted Ridge Predicted Vs Actual House Values" width="500" height="400">
+    <img class="grid-graph" src="{% static 'predictions/ridge_predicted_vs_actual_house_values.png' %}" alt="Ridge Predicted Vs Actual House Values" width="500" height="400">
+</section>
+{% endblock content %}
