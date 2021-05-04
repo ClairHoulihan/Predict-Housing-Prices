@@ -101,7 +101,7 @@ html {
 .grid-graphs {
   display: grid;
   grid-template-columns: auto auto;
-  background-color: #000000;
+  background-color: #353535;
   padding: 10px;
 }
 
