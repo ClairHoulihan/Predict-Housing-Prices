@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import operator
+from exceptions import *
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import OneHotEncoder
@@ -137,306 +138,192 @@ class Housing_Model():
                 self.predictors.append(col)
         
     ##########################################################################################
-    ########################### Modeling the data using linear regression ####################
+    ########################### Modeling the data ############################################
     ##########################################################################################
 
     '''
-    linear_model sets the model for the future plots to be using linear regression and fits the
-    training and testing data to that model.
+    model sets the model for the future plots to be using a regression type specified by the user 
+    and fits the training and testing data to that model.
 
-    input: None
+    input: reg_type - the type of regression to perform with the data (default is Linear)
 
     output: None
     '''
-    def linear_model(self):
+    def model(self, reg_type="Linear"):
 
-        self.selector = LinearRegression()
-        self.train_x = self.training_set[self.predictors]
-        self.train_y = self.training_set[["SalePrice"]]
+        if reg_type == "Linear":
+            self.selector = LinearRegression()
+            self.reg_type = reg_type
+        elif reg_type == "Ridge":
+            self.selector = Ridge()
+            self.reg_type = reg_type
+        else:
+            raise UnknownModelError(reg_type)
 
-        self.selector.fit(self.training_set[self.predictors], self.training_set["SalePrice"])
-        self.test_x = self.test_set[self.predictors]
-        self.test_y = self.selector.predict(self.test_x)
+        try:
+            self.train_x = self.training_set[self.predictors]
+            self.train_y = self.training_set[["SalePrice"]]
 
-        self.ttest_y = self.selector.predict(self.train_x)
+            self.selector.fit(self.training_set[self.predictors], self.training_set["SalePrice"])
+            self.test_x = self.test_set[self.predictors]
+            self.test_y = self.selector.predict(self.test_x)
+
+            self.ttest_y = self.selector.predict(self.train_x)
+
+        except AttributeError:
+            raise NoDataError
+
+
 
     ##########################################################################################
     ########################### Graphing the max coefficients ################################
     ##########################################################################################
 
     '''
-    max_coeffs shows a bar chart of the columns that have the greatest influence on the y values
+    coeffs shows a bar chart of the columns that have the greatest or least influence on the y values
     in the model
 
-    input: None
+    input: max_or_min - determine what are the max coefficients vs the min coefficients
 
     output: None
     '''
-    def max_coeffs(self):
+    def coeffs(self, max_or_min):
+    
+        try:
+            self.coefficients = self.selector.coef_
 
-        self.coefficients = self.selector.coef_
+        except AttributeError:
+            raise NoSelectorError
 
-        max5 = pop_max_ammount(self.coefficients.tolist(), 5)
+        if max_or_min == "max":
+            vals = pop_max_ammount(self.coefficients.tolist(), 5)
+        elif max_or_min == "min":
+            vals = pop_min_ammount(self.coefficients.tolist(), 5)
+        else:
+            raise UnexpectedValueError(max_or_min, ["max", "min"])
+
         ticks = []
-
-        for num in max5:
+        for num in vals:
             ticks.append(self.predictors[self.coefficients.tolist().index(num)])
             
         i = range(0, len(ticks))
 
         fig = plt.figure(figsize=(15, 10), dpi=80)
 
-        plt.title("Max Coefficients")
-        plt.bar(i, max5)
+        plt.title(max_or_min.capitalize() + " Coefficients")
+        plt.bar(i, vals)
 
         plt.xticks(i, ticks)
 
-        fig.savefig('max_coefficients.png')
+        fig.savefig(max_or_min + '_coefficients.png')
 
         plt.show()
         plt.clf()
 
     ##########################################################################################
-    ########################### Graphing the min coefficients ################################
+    ########################### Predicted vs actual house values plot ########################
     ##########################################################################################
 
     '''
-    min_coeffs shows a bar chart of the columns that have the least influence on the y values
-    in the model
-
-    input: None
-
-    output: None
-    '''
-    def min_coeffs(self):
-
-        coefficients = self.selector.coef_
-
-        min5 = pop_min_ammount(coefficients.tolist(), 5)
-        ticks = []
-
-        for num in min5:
-            ticks.append(self.predictors[coefficients.tolist().index(num)])
-            
-        i = range(0, len(ticks))
-
-        fig = plt.figure(figsize=(15, 10), dpi=80)
-
-        plt.title("Min Coefficients")
-        plt.bar(i, min5)
-
-        plt.xticks(i, ticks)
-
-        fig.savefig('min_coefficients.png')
-
-        plt.show()
-        plt.clf()
-
-    ##########################################################################################
-    ########################### Linear model predicted vs actual house values ################
-    ##########################################################################################
-
-    '''
-    linear_plot plots the values from the predicted house values, and plots the values from the 
+    plot plots the values from the predicted house values, and plots the values from the 
     actual house values
 
     input: None
 
     output: None
     '''
-    def linear_plot(self):
+    def plot(self):
 
-        fig = plt.figure()
-        plt.title("Predicted Vs Actual House Values")
-        plt.plot(range(0, 50), self.ttest_y[:50], 'b-o', label="Models predictions")
-        plt.plot(range(0, 50), self.train_y[:50], 'g-o', label="Actual Values")
-        plt.legend()
+        try:
+            fig = plt.figure()
+            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type))
+            plt.plot(range(0, 50), self.ttest_y[:50], 'b-o', label="Models predictions")
+            plt.plot(range(0, 50), self.train_y[:50], 'g-o', label="Actual Values")
+            plt.legend()
 
-        fig.savefig('predicted_vs_actual_house_values')
+            fig.savefig('predicted_vs_actual_house_values_using_%s_regression' % (self.reg_type))
 
-        plt.show()
-        plt.clf()
+            plt.show()
+            plt.clf()
+
+        except AttributeError:
+            raise NoSelectorError
+
 
     ##########################################################################################
-    ########################### Linear model predicted vs actual house values sorted #########
+    ########################### Predicted vs actual house values sorted plot #################
     ##########################################################################################
 
     '''
-    linear_plot_sorted plots the values from the predicted house values, and plots the values from the 
+    sorted_plot plots the values from the predicted house values, and plots the values from the 
     actual house values in order by the actual house prices
 
     input: None
 
     output: None
     '''
-    def linear_plot_sorted(self):
+    def sorted_plot(self):
 
-        dataLimit = 50
+        try:
+            dataLimit = 50
 
-        self.pltTtest_y = []
-        self.pltTrain_y = []
-        plt_sort = []
+            self.pltTtest_y = []
+            self.pltTrain_y = []
+            plt_sort = []
 
-        trainnum_y = self.train_y.to_numpy()
+            trainnum_y = self.train_y.to_numpy()
 
-        for i in range(0, dataLimit):
-            plt_sort.append([self.ttest_y[i], trainnum_y[i]])
+            for i in range(0, dataLimit):
+                plt_sort.append([self.ttest_y[i], trainnum_y[i]])
+                    
+            sorted_plt = sorted(plt_sort, key=operator.itemgetter(1))
                 
-        sorted_plt = sorted(plt_sort, key=operator.itemgetter(1))
-            
-        for pltt in sorted_plt:
-            self.pltTtest_y.append(pltt[0])
-            self.pltTrain_y.append(pltt[1])
-            
-        x_ticks = []
-        for i in range(0, dataLimit):
-            x_ticks.append(i)
+            for pltt in sorted_plt:
+                self.pltTtest_y.append(pltt[0])
+                self.pltTrain_y.append(pltt[1])
+                
+            x_ticks = []
+            for i in range(0, dataLimit):
+                x_ticks.append(i)
 
-        fig = plt.figure()
+            fig = plt.figure()
 
-        plt.title("Predicted Vs Actual House Values")
-        plt.plot(x_ticks, self.pltTtest_y, 'b-o', label="Models predictions")
-        plt.plot(x_ticks, self.pltTrain_y, 'g-o', label="Actual Values")
-        plt.legend()
+            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type))
+            plt.plot(x_ticks, self.pltTtest_y, 'b-o', label="Models predictions")
+            plt.plot(x_ticks, self.pltTrain_y, 'g-o', label="Actual Values")
+            plt.legend()
 
-        fig.savefig('predicted_vs_actual_house_values_sorted')
+            fig.savefig('predicted_vs_actual_house_values_sorted_using_%s_regression' % (self.reg_type))
 
-        plt.show()
-        plt.clf()
+            plt.show()
+            plt.clf()
+
+        except AttributeError:
+            raise NoSelectorError
 
     ##########################################################################################
-    ########################### Listing the evaluation metrics of the linear model ###########
+    ########################### Evaluation Metrics ###########################################
     ##########################################################################################
 
     '''
-    linear_eval prints out some evaluation metrics in order to evaluate how well the model 
+    model_eval prints out some evaluation metrics in order to evaluate how well the model 
     performed with the dataset
 
     input: None
 
     output: None
     '''
-    def linear_eval(self):
+    def model_eval(self):
             
-        print("mean_absolute_error: %.2f" % (mean_absolute_error(self.pltTrain_y, self.pltTtest_y)))
+        try:
+            print("%s Regression Evaluation: " % (self.reg_type))
+            print("mean_absolute_error: %.2f" % (mean_absolute_error(self.train_y, self.ttest_y)))
+            print("mean_squared_error: %.2f" % (mean_squared_error(self.train_y, self.ttest_y)))
+            print("r2_score: %.2f\n" % (r2_score(self.train_y, self.ttest_y)))
 
-        print("mean_squared_error: %.2f" % (mean_squared_error(self.pltTrain_y, self.pltTtest_y)))
+        except AttributeError:
+            raise NoSelectorError
 
-        print("r2_score: %.2f" % (r2_score(self.pltTrain_y, self.pltTtest_y)))
-
-    ##########################################################################################
-    ########################### Modelling the data using ridge regression ####################
-    ##########################################################################################
-
-    '''
-    ridge_model sets the model for the future plots to be using ridge regression and fits the
-    training and testing data to that model.
-
-    input: None
-
-    output: None
-    '''
-    def ridge_model(self):
-
-        self.selector = Ridge()
-        self.train_x = self.training_set[self.predictors]
-        self.train_y = self.training_set[["SalePrice"]]
-
-        self.selector.fit(self.training_set[self.predictors], self.training_set["SalePrice"])
-        self.test_x = self.test_set[self.predictors]
-        self.test_y = self.selector.predict(self.test_x)
-
-        self.ttest_y = self.selector.predict(self.train_x)
-
-    ##########################################################################################
-    ########################### Ridge model predicted vs actual house values #################
-    ##########################################################################################
-
-    '''
-    ridge_plot plots the values from the predicted house values, and plots the values from the 
-    actual house values
-
-    input: None
-
-    output: None
-    '''    
-    def ridge_plot(self):
-
-        fig = plt.figure()
-        plt.title("Predicted Vs Actual House Values")
-        plt.plot(range(0, 50), self.ttest_y[:50], 'b-o', label="Models predictions")
-        plt.plot(range(0, 50), self.train_y[:50], 'g-o', label="Actual Values")
-        plt.legend()
-
-        fig.savefig('ridge_predicted_vs_actual_house_values')
-
-        plt.show()
-        plt.clf()
-
-    ##########################################################################################
-    ########################### Ridge model predicted vs actual house values sorted ##########
-    ##########################################################################################
-
-    '''
-    ridge_plot_sorted plots the values from the predicted house values, and plots the values from the 
-    actual house values in order by the actual house prices
-
-    input: None
-
-    output: None
-    '''
-    def ridge_plot_sorted(self):
-
-        dataLimit = 50
-
-        self.pltTtest_y = []
-        self.pltTrain_y = []
-        self.plt_sort = []
-
-        self.trainnum_y = self.train_y.to_numpy()
-
-        for i in range(0, dataLimit):
-            self.plt_sort.append([self.ttest_y[i], self.trainnum_y[i]])
-                
-        self.sorted_plt = sorted(self.plt_sort, key=operator.itemgetter(1))
-            
-        for pltt in self.sorted_plt:
-            self.pltTtest_y.append(pltt[0])
-            self.pltTrain_y.append(pltt[1])
-            
-        x_ticks = []
-        for i in range(0, dataLimit):
-            x_ticks.append(i)
-
-        fig = plt.figure()
-
-        plt.title("Predicted Vs Actual House Values")
-        plt.plot(x_ticks, self.pltTtest_y, 'b-o', label="Models predictions")
-        plt.plot(x_ticks, self.pltTrain_y, 'g-o', label="Actual Values")
-
-        fig.savefig('ridge_predicted_vs_actual_house_values_sorted')
-
-        plt.legend()
-        plt.show()
-
-    ##########################################################################################
-    ########################### Listing the evaluation metrics of the ridge model ############
-    ##########################################################################################
-    '''
-    ridge_eval prints out some evaluation metrics in order to evaluate how well the model 
-    performed with the dataset
-
-    input: None
-
-    output: None
-    '''
-    def ridge_eval(self):
-
-        print("mean_absolute_error: %.2f" % (mean_absolute_error(self.pltTrain_y, self.pltTtest_y)))
-
-        print("mean_squared_error: %.2f" % (mean_squared_error(self.pltTrain_y, self.pltTtest_y)))
-
-        print("r2_score: %.2f" % (r2_score(self.pltTrain_y, self.pltTtest_y)))
 
 ##########################################################################################
 ########################### Testing ######################################################
@@ -444,17 +331,13 @@ class Housing_Model():
 
 # testing = Housing_Model(columns=["Street", "Neighborhood", "OverallQual", "OverallCond", "RoofStyle"])
 # testing.preprocessing()
-# testing.linearModel()
-# testing.maxCoeffs()
-# testing.minCoeffs()
-# testing.linearPlot()
-# testing.linearPlotSorted()
-# testing.linearEval()
-# testing.ridgeModel()
-# testing.ridgePlot()
-# testing.ridgePlotSorted()
-# testing.ridgeEval()
-
-
-
-
+# testing.model(reg_type="Linear")
+# testing.coeffs("max")
+# testing.coeffs("min")
+# testing.plot()
+# testing.sorted_plot()
+# testing.model_eval()
+# testing.model(reg_type="Ridge")
+# testing.plot()
+# testing.sorted_plot()
+# testing.model_eval()
