@@ -236,12 +236,12 @@ class Housing_Model():
 
         try:
             fig = plt.figure()
-            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type))
+            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type.lower()))
             plt.plot(range(0, 50), self.ttest_y[:50], 'b-o', label="Models predictions")
             plt.plot(range(0, 50), self.train_y[:50], 'g-o', label="Actual Values")
             plt.legend()
 
-            fig.savefig('predicted_vs_actual_house_values_using_%s_regression' % (self.reg_type))
+            fig.savefig('predicted_vs_actual_house_values_using_%s_regression' % (self.reg_type.lower()))
 
             plt.show()
             plt.clf()
@@ -275,9 +275,9 @@ class Housing_Model():
 
             for i in range(0, dataLimit):
                 plt_sort.append([self.ttest_y[i], trainnum_y[i]])
-                    
+            
             sorted_plt = sorted(plt_sort, key=operator.itemgetter(1))
-                
+            
             for pltt in sorted_plt:
                 self.pltTtest_y.append(pltt[0])
                 self.pltTrain_y.append(pltt[1])
@@ -288,12 +288,12 @@ class Housing_Model():
 
             fig = plt.figure()
 
-            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type))
+            plt.title("Predicted Vs Actual House Values Using %s Regression" % (self.reg_type.lower()))
             plt.plot(x_ticks, self.pltTtest_y, 'b-o', label="Models predictions")
             plt.plot(x_ticks, self.pltTrain_y, 'g-o', label="Actual Values")
             plt.legend()
 
-            fig.savefig('predicted_vs_actual_house_values_sorted_using_%s_regression' % (self.reg_type))
+            fig.savefig('predicted_vs_actual_house_values_sorted_using_%s_regression' % (self.reg_type.lower()))
 
             plt.show()
             plt.clf()
@@ -329,15 +329,15 @@ class Housing_Model():
 ########################### Testing ######################################################
 ##########################################################################################
 
-# testing = Housing_Model(columns=["Street", "Neighborhood", "OverallQual", "OverallCond", "RoofStyle"])
-# testing.preprocessing()
-# testing.model(reg_type="Linear")
-# testing.coeffs("max")
-# testing.coeffs("min")
-# testing.plot()
-# testing.sorted_plot()
-# testing.model_eval()
-# testing.model(reg_type="Ridge")
-# testing.plot()
-# testing.sorted_plot()
-# testing.model_eval()
+testing = Housing_Model(columns=["Street", "Neighborhood", "OverallQual", "OverallCond", "RoofStyle"])
+testing.preprocessing()
+testing.model(reg_type="Linear")
+testing.coeffs("max")
+testing.coeffs("min")
+testing.plot()
+testing.sorted_plot()
+testing.model_eval()
+testing.model(reg_type="Ridge")
+testing.plot()
+testing.sorted_plot()
+testing.model_eval()

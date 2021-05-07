@@ -9,4 +9,4 @@ import pytest
 def test__init__(cols):
     testing = predicting.Housing_Model(columns=cols)
     cols.append("SalePrice")
-    assert list(testing.trainingSet.columns) == cols
+    assert list(testing.training_set.columns) == cols
